@@ -9,7 +9,7 @@ class comment_vector_builder:
         self.token_list_path = token_list_path
         self.v_size = v_size
 
-    def generate(self, generate_data_path):
+    def generate(self, generate_data_path, test = False):
         id_comments_tokens = pd.read_csv(self.token_list_path, encoding='utf-8')
         model = Word2Vec.load(self.w2v_model_path)
         counter = 0
@@ -20,18 +20,25 @@ class comment_vector_builder:
             comment_v = np.zeros(self.v_size).reshape((1, self.v_size))
             id = id_comments_tokens.loc[i, 'id']
             tokens = id_comments_tokens.loc[i, 'tokens']
-            target = id_comments_tokens.loc[i, 'target']
+            if not test:
+                target = id_comments_tokens.loc[i, 'target']
             tokens = literal_eval(tokens)
             counter = 0
             for t in tokens:
-                comment_v += np.array(model.wv[t]).reshape((1, self.v_size))
-
-                counter += 1
+                if t in model.wv:
+                    comment_v += np.array(model.wv[t]).reshape((1, self.v_size))
+                    counter += 1
+            if counter == 0:
+                counter = 1
             comment_v /= counter
             comments_v.append(comment_v.tolist())
             ids.append(id)
-            targets.append(target)
-        id_token = pd.DataFrame({"id": ids, "tokens":comments_v, "target": targets})
+            if not test:
+                targets.append(target)
+        if not test:
+            id_token = pd.DataFrame({"id": ids, "tokens":comments_v, "target": targets})
+        else:
+            id_token = pd.DataFrame({'id': ids, 'tokens': comments_v})
         id_token.to_csv(generate_data_path + "id_tokenv.csv", index=False, encoding='utf-8')
 
 
