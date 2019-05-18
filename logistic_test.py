@@ -23,7 +23,7 @@ class Logistic_Test_Builder:
             score = literal_eval(score)
             #print(score)
             if int(score[0]) == 1:
-                values.append(logistic_m.predict_proba(token)[0])
+                values.append(logistic_m.predict_proba(token)[0][1])
             else:
                 values.append(0)
             ids_final.append(id_)
